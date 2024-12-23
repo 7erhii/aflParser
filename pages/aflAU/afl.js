@@ -9,7 +9,12 @@ async function fetchAFLNews() {
   const browser = await puppeteer.launch({
     headless: true,
     defaultViewport: null,
-    args: ['--no-sandbox', '--disable-setuid-sandbox'], // Добавляем для серверной среды
+    executablePath: "/usr/bin/chromium-browser",
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      // дополнительные флаги при необходимости
+    ],
   });
 
   const page = await browser.newPage();
@@ -34,12 +39,20 @@ async function fetchAFLNews() {
       return [];
     }
 
-    const items = Array.from(firstMediaList.querySelectorAll(".media-list__item")).slice(0, 10);
+    const items = Array.from(
+      firstMediaList.querySelectorAll(".media-list__item")
+    ).slice(0, 10);
 
     return items.map((item) => {
-      const title = item.querySelector(".media-thumbnail__title")?.textContent?.trim() || "";
-      const description = item.querySelector(".media-thumbnail__description")?.textContent?.trim() || "";
-      const postLink = item.querySelector(".media-thumbnail__absolute-link")?.href || "";
+      const title =
+        item.querySelector(".media-thumbnail__title")?.textContent?.trim() ||
+        "";
+      const description =
+        item
+          .querySelector(".media-thumbnail__description")
+          ?.textContent?.trim() || "";
+      const postLink =
+        item.querySelector(".media-thumbnail__absolute-link")?.href || "";
 
       const pictureElement = item.querySelector("picture source");
       const imageLink = pictureElement
@@ -78,8 +91,6 @@ async function fetchAFLNews() {
   return newNews;
 }
 
-
-
 // Функция для автоматической прокрутки страницы
 async function autoScroll(page) {
   await page.evaluate(async () => {
@@ -95,11 +106,10 @@ async function autoScroll(page) {
           clearInterval(timer);
           resolve();
         }
-      }, 100); 
+      }, 100);
     });
   });
 }
-
 
 function aflPageParser(cronExpression, callback) {
   cron.schedule(cronExpression, async () => {
@@ -107,7 +117,10 @@ function aflPageParser(cronExpression, callback) {
 
     try {
       const newNews = await fetchAFLNews();
-      console.log("Новости получены для обработки:", JSON.stringify(newNews, null, 2));
+      console.log(
+        "Новости получены для обработки:",
+        JSON.stringify(newNews, null, 2)
+      );
       callback(newNews);
     } catch (error) {
       console.error("Ошибка при парсинге новостей:", error.message);
@@ -116,6 +129,5 @@ function aflPageParser(cronExpression, callback) {
 
   console.log(`Планировщик AFL настроен с интервалом: ${cronExpression}`);
 }
-
 
 export default aflPageParser;
