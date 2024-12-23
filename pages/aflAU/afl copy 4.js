@@ -5,55 +5,51 @@ import cron from "node-cron";
 const existingNewsFile = "./pages/aflAU/existingNews.json";
 
 async function fetchAFLNews() {
-  console.log("Шаг 1: Запуск Puppeteer");
   const browser = await puppeteer.launch({
     headless: true,
     defaultViewport: null,
-    args: ['--no-sandbox', '--disable-setuid-sandbox'], // Добавляем для серверной среды
   });
 
   const page = await browser.newPage();
 
   const url = "https://www.afl.com.au/news/all-news";
-  console.log(`Шаг 2: Переход на страницу ${url}`);
   await page.goto(url, { waitUntil: "domcontentloaded" });
 
-  console.log("Шаг 3: Ожидание селектора .media-list__list");
   await page.waitForSelector(".media-list__list");
 
   // Прокрутка страницы для загрузки всех lazyLoad-изображений
-  console.log("Шаг 4: Прокрутка страницы");
   await autoScroll(page);
 
-  console.log("Шаг 5: Извлечение данных со страницы");
   const currentNews = await page.evaluate(() => {
+    // Находим первую секцию media-list__list
     const firstMediaList = document.querySelector(".media-list__list");
 
-    if (!firstMediaList) {
-      console.error("Секция .media-list__list не найдена");
-      return [];
-    }
+    if (!firstMediaList) return [];
 
-    const items = Array.from(firstMediaList.querySelectorAll(".media-list__item")).slice(0, 10);
+    // Извлекаем первые 10 элементов media-list__item внутри первой секции
+    const items = Array.from(firstMediaList.querySelectorAll(".media-list__item"))
+      .slice(0, 10);
 
     return items.map((item) => {
-      const title = item.querySelector(".media-thumbnail__title")?.textContent?.trim() || "";
-      const description = item.querySelector(".media-thumbnail__description")?.textContent?.trim() || "";
-      const postLink = item.querySelector(".media-thumbnail__absolute-link")?.href || "";
+      const title =
+        item.querySelector(".media-thumbnail__title")?.textContent?.trim() || "";
+      const description =
+        item.querySelector(".media-thumbnail__description")
+          ?.textContent?.trim() || "";
+      const postLink =
+        item.querySelector(".media-thumbnail__absolute-link")?.href || "";
 
+      // Извлекаем ссылку на изображение из тега <picture>
       const pictureElement = item.querySelector("picture source");
       const imageLink = pictureElement
-        ? pictureElement.srcset.split(",")[0].split(" ")[0]
+        ? pictureElement.srcset.split(",")[0].split(" ")[0] // Берём первую ссылку из srcset
         : "";
 
       return { title, description, imageLink, postLink };
     });
   });
 
-  console.log("Шаг 6: Закрытие браузера");
   await browser.close();
-
-  console.log("Шаг 7: Текущие новости:", JSON.stringify(currentNews, null, 2));
 
   let existingNews = [];
   if (fs.existsSync(existingNewsFile)) {
@@ -61,23 +57,18 @@ async function fetchAFLNews() {
     existingNews = JSON.parse(fileData);
   }
 
-  console.log("Шаг 8: Сравнение с существующими новостями");
   const lastExistingNews = existingNews.slice(-20);
   const newNews = currentNews.filter(
     (news) =>
       !lastExistingNews.some((existing) => existing.title === news.title)
   );
 
-  console.log("Шаг 9: Новые новости:", JSON.stringify(newNews, null, 2));
-
   const updatedNews = [...existingNews, ...newNews];
 
-  console.log("Шаг 10: Сохранение обновленных новостей");
   fs.writeFileSync(existingNewsFile, JSON.stringify(updatedNews, null, 2));
 
   return newNews;
 }
-
 
 
 // Функция для автоматической прокрутки страницы
@@ -105,17 +96,11 @@ function aflPageParser(cronExpression, callback) {
   cron.schedule(cronExpression, async () => {
     console.log("Запуск парсинга AFL новостей...");
 
-    try {
-      const newNews = await fetchAFLNews();
-      console.log("Новости получены для обработки:", JSON.stringify(newNews, null, 2));
-      callback(newNews);
-    } catch (error) {
-      console.error("Ошибка при парсинге новостей:", error.message);
-    }
+    const newNews = await fetchAFLNews();
+    callback(newNews);
   });
 
   console.log(`Планировщик AFL настроен с интервалом: ${cronExpression}`);
 }
-
 
 export default aflPageParser;
