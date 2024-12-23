@@ -1,0 +1,15 @@
+# Игнорировать файлы среды
+.env
+.env.*
+
+# Игнорировать папку с модулями Node.js
+node_modules/
+
+# Игнорировать логи
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Игнорировать файлы системных настроек
+.DS_Store
+Thumbs.db
