@@ -37,6 +37,13 @@ bot.on('text', (ctx) => {
     }
 });
 
+bot.on('message', (ctx) => {
+    const chatId = ctx.chat.id;
+    console.log('Chat ID:', chatId);
+    ctx.reply(`Ваш Chat ID: ${chatId}`);
+});
+
+
 // Запуск бота
 bot.launch()
     .then(() => console.log('Бот запущен!'))
