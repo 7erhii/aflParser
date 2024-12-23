@@ -22,9 +22,9 @@ aflPageParser("*/10 * * * * *", async (newNews) => {
         if (aiResponse) {
           console.log(`Ответ AI для новости "${news.title}":`, aiResponse);
 
-          const titleMatch = aiResponse.match(
-            /(?:^|\b)([Tt]itle(?:[Tt]itle)?):?\s*(\S.+?)(?:\n|Description:|$)/
-          );
+          const titleMatch = aiResponse.match(/Title:\s*(.+?)(?:\n|Description:|$)/);
+
+
           const descriptionMatch = aiResponse.match(/Description:\s*(.+)/);
 
           const title = titleMatch ? titleMatch[1].trim() : null;
