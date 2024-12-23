@@ -5,25 +5,49 @@ dotenv.config();
 
 const bot = new Telegraf(process.env.DOKI_DOKI_API_KEY);
 
-const groupId = process.env.DOKI_DOKI_GROUP_ID;
+// Изначальный ID группы
+let groupId = process.env.DOKI_DOKI_GROUP_ID;
 
 // Функция для отправки сообщения
 export function sendMessageToGroup(title, description, imageUrl) {
     const message = `*${title}*\n${description}`;
 
     if (imageUrl) {
-        // Отправляем изображение с текстом
         bot.telegram.sendPhoto(groupId, imageUrl, {
             caption: message,
             parse_mode: 'Markdown'
         })
-        .catch(err => console.error('Ошибка отправки сообщения с изображением:', err));
+        .catch(err => {
+            if (err.response && err.response.parameters && err.response.parameters.migrate_to_chat_id) {
+                // Обновляем groupId
+                groupId = err.response.parameters.migrate_to_chat_id;
+                console.log('Обновленный ID чата:', groupId);
+                // Повторная отправка сообщения с новым ID
+                bot.telegram.sendPhoto(groupId, imageUrl, {
+                    caption: message,
+                    parse_mode: 'Markdown'
+                }).catch(err => console.error('Ошибка при повторной отправке:', err));
+            } else {
+                console.error('Ошибка отправки сообщения с изображением:', err);
+            }
+        });
     } else {
-        // Если изображения нет, отправляем только текст
         bot.telegram.sendMessage(groupId, message, {
             parse_mode: 'Markdown'
         })
-        .catch(err => console.error('Ошибка отправки текстового сообщения:', err));
+        .catch(err => {
+            if (err.response && err.response.parameters && err.response.parameters.migrate_to_chat_id) {
+                // Обновляем groupId
+                groupId = err.response.parameters.migrate_to_chat_id;
+                console.log('Обновленный ID чата:', groupId);
+                // Повторная отправка сообщения с новым ID
+                bot.telegram.sendMessage(groupId, message, {
+                    parse_mode: 'Markdown'
+                }).catch(err => console.error('Ошибка при повторной отправке:', err));
+            } else {
+                console.error('Ошибка отправки текстового сообщения:', err);
+            }
+        });
     }
 }
 
@@ -36,13 +60,6 @@ bot.on('text', (ctx) => {
         ctx.reply(reply);
     }
 });
-
-bot.on('message', (ctx) => {
-    const chatId = ctx.chat.id;
-    console.log('Chat ID:', chatId);
-    ctx.reply(`Ваш Chat ID: ${chatId}`);
-});
-
 
 // Запуск бота
 bot.launch()
