@@ -9,11 +9,10 @@ async function fetchAFLNews() {
   const browser = await puppeteer.launch({
     headless: true,
     defaultViewport: null,
-    executablePath: puppeteer.executablePath(),
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-    ],
+    // executablePath: puppeteer.executablePath(),
+    executablePath: "/usr/bin/chromium-browser", // Указание системного Chromium
+
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
 
   try {
@@ -42,7 +41,6 @@ async function fetchAFLNews() {
     await browser.close();
   }
 }
-
 
 // Функция для автоматической прокрутки страницы
 async function autoScroll(page) {
