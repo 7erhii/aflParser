@@ -8,11 +8,11 @@ import { aflAiModel } from "./models/aflAiModel.js";
 import { sendMessageToGroup } from "./bots/aifBotModel/aifBotModel.js";
 
 // AFL
-aflPageParser("*/50 * * * * *", async (newNews) => {
-// aflPageParser("0 * * * *", async (newNews) => {
+// aflPageParser("*/50 * * * * *", async (newNews) => {
+aflPageParser("0 * * * *", async (newNews) => {
   console.log("Запуск парсинга AFL новостей...");
 
-  if (newNews.length > 0) {
+  if (newNews && Array.isArray(newNews) && newNews.length > 0) {
     console.log("AFL новости:", JSON.stringify(newNews, null, 2));
     for (const news of newNews) {
       console.log(
