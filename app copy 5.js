@@ -8,8 +8,8 @@ import { aflAiModel } from "./models/aflAiModel.js";
 import { sendMessageToGroup } from "./bots/aifBotModel/aifBotModel.js";
 
 // AFL
-aflPageParser("*/50 * * * * *", async (newNews) => {
-// aflPageParser("0 * * * *", async (newNews) => {
+// aflPageParser("*/10 * * * * *", async (newNews) => {
+aflPageParser("0 * * * *", async (newNews) => {
   console.log("Запуск парсинга AFL новостей...");
 
   if (newNews && newNews.length > 0) {
