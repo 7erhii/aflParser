@@ -12,7 +12,7 @@ aflPageParser("*/50 * * * * *", async (newNews) => {
 // aflPageParser("0 * * * *", async (newNews) => {
   console.log("Запуск парсинга AFL новостей...");
 
-  if (newNews && newNews.length > 0) {
+  if (newNews.length > 0) {
     console.log("AFL новости:", JSON.stringify(newNews, null, 2));
     for (const news of newNews) {
       console.log(
